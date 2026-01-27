@@ -1,5 +1,8 @@
 package com.samj.backend;
 
+import com.samj.shared.CallForwardingDTO;
+import com.samj.shared.UserDTO;
+
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -9,6 +12,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Set;
 
 public class HTTPServer {
 
@@ -100,6 +104,58 @@ public class HTTPServer {
      */
     private boolean authenticateAdmin(String username, String password) {
         return ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password);
+    }
+
+    /**
+     * VULNERABLE: SQL Injection via UserDAO.searchUsers().
+     * HTTP input flows through DAO method that concatenates it into SQL.
+     */
+    private String handleUserSearch(String keyword) {
+        StringBuilder result = new StringBuilder();
+        Set<UserDTO> users = UserDAO.searchUsers(keyword);
+        for (UserDTO user : users) {
+            result.append(user.getUsername()).append(",")
+                  .append(user.getFullName()).append(",")
+                  .append(user.getNumber()).append("\n");
+        }
+        return result.toString();
+    }
+
+    /**
+     * VULNERABLE: SQL Injection via UserDAO.loadUsersByRole().
+     * HTTP input flows through DAO method that concatenates it into SQL.
+     */
+    private String handleUsersByRole(String role) {
+        StringBuilder result = new StringBuilder();
+        Set<UserDTO> users = UserDAO.loadUsersByRole(role);
+        for (UserDTO user : users) {
+            result.append(user.getUsername()).append(",")
+                  .append(user.getRole()).append("\n");
+        }
+        return result.toString();
+    }
+
+    /**
+     * VULNERABLE: SQL Injection via CallForwardingRecordsDAO.searchRecordsByCalledNumber().
+     * HTTP input flows through DAO method that concatenates it into SQL.
+     */
+    private String handleForwardingSearch(String calledNumber) {
+        StringBuilder result = new StringBuilder();
+        Set<CallForwardingDTO> records = CallForwardingRecordsDAO.searchRecordsByCalledNumber(calledNumber);
+        for (CallForwardingDTO record : records) {
+            result.append(record.getCalledNumber()).append(",")
+                  .append(record.getDestinationUsername()).append("\n");
+        }
+        return result.toString();
+    }
+
+    /**
+     * VULNERABLE: SQL Injection via CallForwardingRecordsDAO.deleteRecordsByCalledNumber().
+     * HTTP input flows through DAO method that concatenates it into SQL DELETE.
+     */
+    private String handleForwardingDelete(String calledNumber) {
+        boolean deleted = CallForwardingRecordsDAO.deleteRecordsByCalledNumber(calledNumber);
+        return deleted ? "Deleted" : "Failed";
     }
 
     /**
@@ -195,6 +251,18 @@ public class HTTPServer {
             } else if (feature.equals("search")) {
                 String searchParam = withoutPrefix.split("\\?q=")[1].split(" ")[0];
                 sendResponse(clientSocket, handleSearchRequest(searchParam));
+            } else if (feature.equals("userSearch")) {
+                String keyword = withoutPrefix.split("\\?q=")[1].split(" ")[0];
+                sendResponse(clientSocket, handleUserSearch(keyword));
+            } else if (feature.equals("usersByRole")) {
+                String role = withoutPrefix.split("\\?role=")[1].split(" ")[0];
+                sendResponse(clientSocket, handleUsersByRole(role));
+            } else if (feature.equals("forwardingSearch")) {
+                String number = withoutPrefix.split("\\?number=")[1].split(" ")[0];
+                sendResponse(clientSocket, handleForwardingSearch(number));
+            } else if (feature.equals("forwardingDelete")) {
+                String number = withoutPrefix.split("\\?number=")[1].split(" ")[0];
+                sendResponse(clientSocket, handleForwardingDelete(number));
             } else if (feature.equals("ping")) {
                 String hostParam = withoutPrefix.split("\\?host=")[1].split(" ")[0];
                 sendResponse(clientSocket, handlePingRequest(hostParam));
