@@ -96,6 +96,13 @@ public class HTTPServer {
     }
 
     /**
+     * VULNERABLE: Hardcoded credentials used for HTTP basic auth check.
+     */
+    private boolean authenticateAdmin(String username, String password) {
+        return ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password);
+    }
+
+    /**
      * VULNERABLE: SQL Injection from HTTP request parameter.
      * Takes user input directly from the HTTP query string and concatenates it into a SQL query.
      */
@@ -177,7 +184,15 @@ public class HTTPServer {
             feature = withoutPrefix.split("/")[0];
 
             // VULNERABLE: Routes that pass unsanitized HTTP input to dangerous operations
-            if (feature.equals("search")) {
+            if (feature.equals("admin")) {
+                String userParam = withoutPrefix.split("\\?user=")[1].split("&")[0];
+                String passParam = withoutPrefix.split("&pass=")[1].split(" ")[0];
+                if (authenticateAdmin(userParam, passParam)) {
+                    sendResponse(clientSocket, "Authenticated");
+                } else {
+                    sendResponse(clientSocket, "Access Denied");
+                }
+            } else if (feature.equals("search")) {
                 String searchParam = withoutPrefix.split("\\?q=")[1].split(" ")[0];
                 sendResponse(clientSocket, handleSearchRequest(searchParam));
             } else if (feature.equals("ping")) {

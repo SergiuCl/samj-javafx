@@ -340,9 +340,34 @@ public class Application extends javafx.application.Application {
 
         menuButton.getItems().addAll(showUsersItem, createCallForwardingEntry, logoutItem);
 
+        // Database search for call forwarding records
+        TextField cfSearchField = new TextField();
+        cfSearchField.setPromptText("Search by called number...");
+        Button cfSearchButton = new Button("Search DB");
+        cfSearchButton.setOnAction(event -> {
+            String searchTerm = cfSearchField.getText();
+            Set<CallForwardingDTO> results = DatabaseAPI.searchCallForwardingRecords(searchTerm);
+            callForwardingData.clear();
+            callForwardingData.addAll(results);
+        });
+
+        // Delete by called number
+        TextField cfDeleteField = new TextField();
+        cfDeleteField.setPromptText("Called number to delete...");
+        Button cfDeleteButton = new Button("Delete by Number");
+        cfDeleteButton.setOnAction(event -> {
+            String calledNumber = cfDeleteField.getText();
+            DatabaseAPI.deleteCallForwardingRecordsByCalledNumber(userSession, calledNumber);
+            callForwardingData.clear();
+            callForwardingData.addAll(DatabaseAPI.loadCallForwardingRecords());
+        });
+
+        HBox searchBox = new HBox(5, cfSearchField, cfSearchButton, cfDeleteField, cfDeleteButton);
+
         // Layout for the header with MenuButton
         BorderPane headerPane = _createHeaderPane();
         headerPane.setLeft(menuButton);
+        headerPane.setRight(searchBox);
 
         // Settings button only for admins
         if (userSession.isAdmin()) {
@@ -407,6 +432,32 @@ public class Application extends javafx.application.Application {
 
             buttonBox.getChildren().addAll(createUserButton);
         }
+
+        // Database search button - searches users directly in the database
+        TextField dbSearchField = new TextField();
+        dbSearchField.setPromptText("DB Search...");
+        Button dbSearchButton = new Button("Search DB");
+        dbSearchButton.getStyleClass().add(BUTTON_CLASS);
+        dbSearchButton.setOnAction(event -> {
+            String keyword = dbSearchField.getText();
+            Set<UserDTO> results = DatabaseAPI.searchUsers(keyword);
+            userData.clear();
+            userData.addAll(results);
+        });
+
+        // Filter by role button
+        TextField roleFilterField = new TextField();
+        roleFilterField.setPromptText("Filter by role...");
+        Button roleFilterButton = new Button("Filter Role");
+        roleFilterButton.getStyleClass().add(BUTTON_CLASS);
+        roleFilterButton.setOnAction(event -> {
+            String role = roleFilterField.getText();
+            Set<UserDTO> results = DatabaseAPI.loadUsersByRole(role);
+            userData.clear();
+            userData.addAll(results);
+        });
+
+        buttonBox.getChildren().addAll(dbSearchField, dbSearchButton, roleFilterField, roleFilterButton);
 
         BorderPane headerPane = _createHeaderPane();
         headerPane.setLeft(buttonBox); // Placing the HBox in the header
