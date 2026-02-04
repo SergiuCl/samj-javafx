@@ -37,7 +37,7 @@ jobs:
       - name: Run Semgrep scan
         run: |
           mkdir -p sarif-output/semgrep
-          semgrep scan --config p/security-audit --sarif --output sarif-output/semgrep/semgrep.sarif
+          semgrep scan --config p/java --config p/security-audit --sarif --output sarif-output/semgrep/semgrep.sarif
 
       # Uploads the SARIF report to GitHub Code Scanning
       # Results will appear under Security → Code scanning alerts
