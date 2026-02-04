@@ -1,0 +1,57 @@
+name: Semgrep
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "codeql-testing" ]
+  pull_request:
+    branches: [ "codeql-testing" ]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    #   1. Checkout → get code
+    #   2. Install Semgrep (Community Edition)
+    #   3. Run Semgrep scan
+    #   4. Produce SARIF report
+    #   5. Upload results to GitHub Code Scanning and as artifact
+    steps:
+      # Clones your repository into the runner VM
+      # Makes your source code available to later steps
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Installs Semgrep Community Edition (free, no account required)
+      - name: Install Semgrep
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install semgrep
+
+      # Runs Semgrep using the automatic ruleset selection
+      # --config auto selects rules based on detected languages/frameworks
+      # --sarif generates a SARIF report for standardized output
+      - name: Run Semgrep scan
+        run: |
+          mkdir -p sarif-output/semgrep
+          semgrep scan \
+            --config auto \
+            --sarif \
+            --output sarif-output/semgrep/semgrep.sarif
+
+      # Uploads the SARIF report to GitHub Code Scanning
+      # Results will appear under Security → Code scanning alerts
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: sarif-output/semgrep/semgrep.sarif
+
+      # Uploads the SARIF report as a workflow artifact
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif
+          path: sarif-output/semgrep/semgrep.sarif
