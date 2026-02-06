@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   # 'push' scans the branch for the dashboard
   push:
-    branches: [ "codeql-testing" ]
+    branches: [ "main", "codeql-testing", "semgrep-testing" ]
   # 'pull_request' triggers the inline PR comments
   pull_request:
-    branches: [ "codeql-testing" ]
+    branches: [ "main", "codeql-testing", "semgrep-testing" ]
 
 jobs:
   semgrep:
@@ -16,8 +16,8 @@ jobs:
     # Necessary permissions for Semgrep to interact with your PR
     permissions:
       contents: read
-      pull-requests: write
-      security-events: write
+      pull-requests: write # REQUIRED for comments
+      security-events: write # For the 'Security' tab
 
     container:
       image: semgrep/semgrep
