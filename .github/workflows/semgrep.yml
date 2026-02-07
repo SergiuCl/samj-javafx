@@ -3,9 +3,9 @@ name: Semgrep AppSec
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "codeql-testing", "semgrep-testing" ]
+    branches: [ "main", "semgrep-testing" ]
   pull_request:
-    branches: [ "main", "codeql-testing", "semgrep-testing" ]
+    branches: [ "main", "semgrep-testing" ]
 
 jobs:
   semgrep-analyze:
