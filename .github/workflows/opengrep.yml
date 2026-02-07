@@ -25,7 +25,7 @@ jobs:
       # Installs Opengrep and adds it to PATH for following steps
       - name: Install Opengrep (with signature verification)
         run: |
-          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -- --verify-signatures
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -s -- --verify-signatures
           echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
 
       - name: Verify Opengrep installation
