@@ -3,9 +3,9 @@ name: CodeQL
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "codeql-testing" ]
+    branches: [ "codeql-testing" ]
   pull_request:
-    branches: [ "main", "codeql-testing" ]
+    branches: [ "codeql-testing" ]
 
 jobs:
   analyze:
