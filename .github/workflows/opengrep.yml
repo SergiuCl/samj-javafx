@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write  # Required to upload results to the Security tab
+      pull-requests: write    # Required for the Bot to post comments
+      security-events: write  # Required for the GitHub Security tab
 
     steps:
       - name: Checkout code
