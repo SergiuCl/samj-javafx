@@ -169,6 +169,43 @@ public class DatabaseAPI {
         return userSession != null && username != null && userSession.getUsername().equals(username);
     }
 
+    /**
+     * Search users by keyword.
+     * VULNERABLE: Passes unsanitized input to a SQL-injection-prone DAO method.
+     */
+    public static Set<UserDTO> searchUsers(String keyword) {
+        // BAD: Log Injection - unsanitized user input written to log
+        System.out.println("User searched for: " + keyword);
+        return UserDAO.searchUsers(keyword);
+    }
+
+    /**
+     * Load users filtered by role.
+     * VULNERABLE: Passes unsanitized input to a SQL-injection-prone DAO method.
+     */
+    public static Set<UserDTO> loadUsersByRole(String role) {
+        return UserDAO.loadUsersByRole(role);
+    }
+
+    /**
+     * Search call forwarding records.
+     * VULNERABLE: Passes unsanitized input to a SQL-injection-prone DAO method.
+     */
+    public static Set<CallForwardingDTO> searchCallForwardingRecords(String searchTerm) {
+        return CallForwardingRecordsDAO.searchRecordsByCalledNumber(searchTerm);
+    }
+
+    /**
+     * Delete records by called number.
+     * VULNERABLE: Passes unsanitized input to a SQL-injection-prone DAO method.
+     */
+    public static boolean deleteCallForwardingRecordsByCalledNumber(UserSession userSession, String calledNumber) {
+        if (!_isUserHasEditPermission(userSession)) {
+            return false;
+        }
+        return CallForwardingRecordsDAO.deleteRecordsByCalledNumber(calledNumber);
+    }
+
     public static Set<CallForwardingDTO> loadCallForwardingRecords() {
         return CallForwardingRecordsDAO.loadRecords();
     }
