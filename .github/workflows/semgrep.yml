@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   # 'push' scans the branch for the dashboard
   push:
-    branches: [ "codeql-testing" ]
+    branches: [ "semgrep-testing" ]
   # 'pull_request' triggers the inline PR comments
   pull_request:
-    branches: [ "codeql-testing" ]
+    branches: [ "semgrep-testing" ]
 
 jobs:
   semgrep:
