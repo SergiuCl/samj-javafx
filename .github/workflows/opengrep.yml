@@ -15,23 +15,33 @@ jobs:
       security-events: write  # Required to upload results to the Security tab
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Opengrep
+      # Installs cosign so Opengrep's installer can verify signatures (removes the warning)
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      # Installs Opengrep and adds it to PATH for following steps
+      - name: Install Opengrep (with signature verification)
         run: |
-          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -- --verify-signatures
+          echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
           opengrep --version
 
+      # Runs Opengrep and writes a SARIF report
       - name: Run Opengrep Scan (SARIF)
         run: |
           opengrep scan --config auto --sarif-output opengrep.sarif .
 
+      # Uploads results to Security -> Code scanning alerts
       - name: Upload to GitHub Security Tab
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: opengrep.sarif
-        if: always()
+        if: always()  # Upload even if the scan fails
 
+      # Makes the raw SARIF file available in the "Actions" run summary
       - name: Upload SARIF artifact
         uses: actions/upload-artifact@v4
         with:
