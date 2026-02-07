@@ -27,7 +27,9 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -- --verify-signatures
           echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
-          opengrep --version
+
+      - name: Verify Opengrep installation
+        run: opengrep --version
 
       # Runs Opengrep and writes a SARIF report
       - name: Run Opengrep Scan (SARIF)
