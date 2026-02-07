@@ -2,10 +2,7 @@ package com.samj.backend;
 
 import com.samj.shared.UserDTO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -93,6 +90,52 @@ public class UserDAO {
         }
 
         return null;
+    }
+
+    /**
+     * Search users by a keyword across username and fullname columns.
+     * VULNERABLE: SQL Injection - uses string concatenation instead of parameterized query.
+     */
+    public static Set<UserDTO> searchUsers(String keyword) {
+        Set<UserDTO> userDTOs = new HashSet<>();
+
+        // BAD: SQL Injection vulnerability - user input directly concatenated into query
+        String query = "SELECT * FROM user WHERE username LIKE '%" + keyword + "%' OR fullname LIKE '%" + keyword + "%'";
+
+        try (Connection connection = Database.getDbConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            _updateUserDTOSetFromResultSet(resultSet, userDTOs);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return userDTOs;
+    }
+
+    /**
+     * Load users filtered by role.
+     * VULNERABLE: SQL Injection - uses string concatenation instead of parameterized query.
+     */
+    public static Set<UserDTO> loadUsersByRole(String role) {
+        Set<UserDTO> userDTOs = new HashSet<>();
+
+        // BAD: SQL Injection vulnerability - user input directly concatenated into query
+        String query = "SELECT * FROM user WHERE role = '" + role + "' AND status != 'deleted'";
+
+        try (Connection connection = Database.getDbConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            _updateUserDTOSetFromResultSet(resultSet, userDTOs);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return userDTOs;
     }
 
     public static boolean createUser(UserDTO userDTO) {

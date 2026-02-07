@@ -272,4 +272,50 @@ public class CallForwardingRecordsDAO {
         return callForwardingDTOS;
     }
 
+    /**
+     * Search call forwarding records by a keyword in the calledNumber field.
+     * VULNERABLE: SQL Injection - uses string concatenation instead of parameterized query.
+     */
+    public static Set<CallForwardingDTO> searchRecordsByCalledNumber(String searchTerm) {
+        Set<CallForwardingDTO> callForwardingDTOS = new HashSet<>();
+
+        // BAD: SQL Injection vulnerability - user input directly concatenated into query
+        String query = "SELECT c.*, u.number, u.username, u.fullname FROM call_forwarding_records as c "
+                + "JOIN user as u ON u.username=c.username "
+                + "WHERE c.calledNumber LIKE '%" + searchTerm + "%' AND u.status != 'deleted'";
+
+        try (Connection connection = Database.getDbConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            _updateCallForwardingFromResultSet(resultSet, callForwardingDTOS);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return callForwardingDTOS;
+    }
+
+    /**
+     * Delete records by calledNumber.
+     * VULNERABLE: SQL Injection - uses string concatenation instead of parameterized query.
+     */
+    public static boolean deleteRecordsByCalledNumber(String calledNumber) {
+        // BAD: SQL Injection vulnerability - user input directly concatenated into query
+        String query = "DELETE FROM call_forwarding_records WHERE calledNumber = '" + calledNumber + "'";
+
+        try (Connection connection = Database.getDbConnection();
+             Statement statement = connection.createStatement()) {
+
+            statement.executeUpdate(query);
+            return true;
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return false;
+    }
+
 }
