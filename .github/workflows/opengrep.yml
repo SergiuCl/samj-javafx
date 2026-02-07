@@ -14,20 +14,20 @@ jobs:
       contents: read
       security-events: write  # Required to upload results to the Security tab
 
-    container:
-      # Using the official Opengrep image from the consortium
-      image: ghcr.io/opengrep/opengrep:latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Run Opengrep Scan
+      - name: Install Opengrep
         run: |
-          opengrep scan --config auto --sarif --output opengrep.sarif
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          opengrep --version
+
+      - name: Run Opengrep Scan (SARIF)
+        run: |
+          opengrep scan --config auto --sarif-output opengrep.sarif .
 
       - name: Upload to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: opengrep.sarif
         if: always()
