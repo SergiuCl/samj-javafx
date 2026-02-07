@@ -10,9 +10,11 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    # Necessary permissions for Semgrep to interact with your PR
     permissions:
       contents: read
-      security-events: write
+      pull-requests: write    # Required for the Bot to post comments
+      security-events: write  # Required for the GitHub Security tab
 
     # 	1.	Checkout → get code
     #	2.	Init → configure CodeQL + language
